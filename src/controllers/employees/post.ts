@@ -17,7 +17,7 @@ const createEmployeeDocs = describeRoute({
       description: "Create Employee",
     },
   },
-  tags: ["Employees"],
+  tags: ["Employee"],
 })
 
 const validateCreateEmployee = validator("json", EmployeeSchema.CreateSchema)
