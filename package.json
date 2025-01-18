@@ -1,0 +1,32 @@
+{
+  "name": "backend-workshop-day-1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "lint:fix": "eslint --fix .",
+    "lint": "eslint .",
+    "build": "tsc",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push",
+    "prisma:pull": "prisma db pull",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:migrate:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.33.0",
+    "@hono/node-server": "^1.13.7",
+    "effect": "^3.12.5",
+    "hono": "^4.6.16"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^3.14.0",
+    "@types/node": "^22.10.7",
+    "eslint": "^9.18.0",
+    "eslint-plugin-perfectionist": "^4.6.0",
+    "prisma": "^6.2.1",
+    "tsx": "^4.7.1",
+    "typescript": "^5.7.3"
+  }
+}
