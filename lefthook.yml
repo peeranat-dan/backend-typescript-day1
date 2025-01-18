@@ -1,0 +1,10 @@
+commit-msg:
+  commands:
+    lint-commit-msg:
+      run: pnpm commitlint --edit
+
+pre-commit:
+  parallel: true
+  jobs:
+    - run: pnpm eslint {staged_files}
+      glob: "*.{js,ts,jsx,tsx}"
