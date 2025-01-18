@@ -31,4 +31,4 @@ dist
 db-data
 
 third-party/**
-!third-party/docker-compose.yml
+!third-party/compose.yml
