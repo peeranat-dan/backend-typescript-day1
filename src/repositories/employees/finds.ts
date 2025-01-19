@@ -1,52 +1,60 @@
 import type { PrismaClient } from "@prisma/client"
 
 import type { EmployeeRepository } from "../../types/repositories/employee.js"
+import { Effect } from "effect"
 import { EmployeeSchema, EmployeeWithRelationsSchema, Helpers } from "../../schema/index.js"
+import * as Errors from "../../types/errors/employees.js"
 
 export function findMany(prismaClient: PrismaClient): EmployeeRepository["findMany"] {
-  return async () => {
-    const result = await prismaClient.employee.findMany({
+  return () => Effect.tryPromise({
+    catch: Errors.FindManyEmployeesError.new(),
+    try: () => prismaClient.employee.findMany({
       where: {
         deletedAt: null,
       },
-    })
-    const data = Helpers.fromObjectToSchema(EmployeeSchema.SchemaArray)(result)
-    return data
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeSchema.SchemaArray)),
+    Effect.withSpan("findMany.employee.repository"),
+  )
 }
 
 export function findManyWithRelations(prismaClient: PrismaClient): EmployeeRepository["findManyWithRelations"] {
-  return async () => {
-    const result = await prismaClient.employee.findMany({
+  return () => Effect.tryPromise({
+    catch: Errors.FindManyEmployeesError.new(),
+    try: () => prismaClient.employee.findMany({
       include: {
         overtimes: true,
       },
       where: {
         deletedAt: null,
       },
-    })
-    const data = Helpers.fromObjectToSchema(EmployeeWithRelationsSchema.SchemaArray)(result)
-    return data
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeWithRelationsSchema.SchemaArray)),
+    Effect.withSpan("findManyWithRelations.employee.repository"),
+  )
 }
 
 export function findById(prismaClient: PrismaClient): EmployeeRepository["findById"] {
-  return async (id) => {
-    const result = await prismaClient.employee.findUnique({
+  return id => Effect.tryPromise({
+    catch: Errors.FindEmployeeByIdError.new(),
+    try: () => prismaClient.employee.findUnique({
       where: {
         deletedAt: null,
         id,
       },
-    })
-    if (result === null)
-      return null
-    return Helpers.fromObjectToSchema(EmployeeSchema.Schema)(result)
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeSchema.Schema)),
+    Effect.withSpan("findById.employee.repository"),
+  )
 }
 
 export function findByIdWithRelations(prismaClient: PrismaClient): EmployeeRepository["findByIdWithRelations"] {
-  return async (id) => {
-    const result = await prismaClient.employee.findUnique({
+  return id => Effect.tryPromise({
+    catch: Errors.FindEmployeeByIdError.new(),
+    try: () => prismaClient.employee.findUnique({
       include: {
         overtimes: true,
       },
@@ -54,9 +62,9 @@ export function findByIdWithRelations(prismaClient: PrismaClient): EmployeeRepos
         deletedAt: null,
         id,
       },
-    })
-    if (result === null)
-      return null
-    return Helpers.fromObjectToSchema(EmployeeWithRelationsSchema.Schema)(result)
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeWithRelationsSchema.Schema)),
+    Effect.withSpan("findByIdWithRelations.employee.repository"),
+  )
 }
