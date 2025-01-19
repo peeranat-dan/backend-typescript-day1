@@ -1,6 +1,10 @@
 import { Data } from "effect"
 import { createErrorFactory, type ErrorMsg } from "../error.helpers.js"
 
+export class CreateEmployeeError extends Data.TaggedError("CreateEmployeeError")<ErrorMsg> {
+  static new = createErrorFactory(this)
+}
+
 export class FindEmployeeByIdError extends Data.TaggedError("FindEmployeeByIdError")<ErrorMsg> {
   static new = createErrorFactory(this)
 }
