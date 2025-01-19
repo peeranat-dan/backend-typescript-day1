@@ -1,5 +1,10 @@
 import { PrismaClient } from "@prisma/client"
+import { Context, Layer } from "effect"
 
 const prismaClient = new PrismaClient()
 
-export default prismaClient
+export class PrismaClientContext extends Context.Tag("Repository/PrismaClient")<PrismaClientContext, PrismaClient>() {
+  static Live = Layer.succeed(this, prismaClient)
+}
+
+export default PrismaClientContext
