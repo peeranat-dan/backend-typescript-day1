@@ -1,10 +1,9 @@
-import { Effect, Layer, pipe } from "effect"
+import { Effect } from "effect"
 import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
 import { resolver, validator } from "hono-openapi/effect"
-import { EmployeeRepositoryContext } from "../../repositories/employees/index.js"
-import PrismaClientContext from "../../repositories/prisma.js"
+import { ServicesRuntime } from "../../runtimes/index.js"
 import { Branded, EmployeeWithRelationsSchema, Helpers } from "../../schema/index.js"
 import { EmployeeServiceContext } from "../../services/employees/index.js"
 
@@ -50,13 +49,6 @@ export function setupEmployeeGetRoutes() {
   app.get("/", getManyDocs, async (c) => {
     const parseResponse = Helpers.fromObjectToSchemaEffect(getManyResponseSchema)
 
-    const mainLive
-      = pipe(
-        EmployeeServiceContext.Live,
-        Layer.provide(EmployeeRepositoryContext.Live),
-        Layer.provide(PrismaClientContext.Live),
-      )
-
     const program = EmployeeServiceContext.pipe(
       Effect.tap(() => Effect.log("Get all employees")),
       Effect.andThen(service => service.findMany()),
@@ -67,10 +59,9 @@ export function setupEmployeeGetRoutes() {
         ParseError: () => Effect.succeed(c.json({ message: "Parse error" }, 500)),
       }),
       Effect.withSpan("GET /.employee.controller"),
-      Effect.provide(mainLive),
     )
 
-    const result = await Effect.runPromise(program)
+    const result = await ServicesRuntime.runPromise(program)
     return result
   })
 
@@ -79,13 +70,6 @@ export function setupEmployeeGetRoutes() {
     // const employee = await employeeService.findOneById(employeeId)
     // return c.json(Helpers.fromObjectToSchema(getByIdResponseSchema)(employee), 200)
     const parseResponse = Helpers.fromObjectToSchemaEffect(getByIdResponseSchema)
-
-    const mainLive
-      = pipe(
-        EmployeeServiceContext.Live,
-        Layer.provide(EmployeeRepositoryContext.Live),
-        Layer.provide(PrismaClientContext.Live),
-      )
 
     const program = EmployeeServiceContext.pipe(
       Effect.tap(() => Effect.log("Get employee by id")),
@@ -98,10 +82,9 @@ export function setupEmployeeGetRoutes() {
         ParseError: () => Effect.succeed(c.json({ message: "Parse error" }, 500)),
       }),
       Effect.withSpan("GET /:employeeId.employee.controller"),
-      Effect.provide(mainLive),
     )
 
-    const result = await Effect.runPromise(program)
+    const result = await ServicesRuntime.runPromise(program)
     return result
   })
 
