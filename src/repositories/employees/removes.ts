@@ -1,29 +1,36 @@
 import type { PrismaClient } from "@prisma/client"
 import type { EmployeeRepository } from "../../types/repositories/employee.js"
+import { Effect } from "effect"
 import { EmployeeSchema, Helpers } from "../../schema/index.js"
+import * as Errors from "../../types/errors/employees.js"
 
 export function remove(prismaClient: PrismaClient): EmployeeRepository["remove"] {
-  return async (id) => {
-    const result = await prismaClient.employee.update({
+  return id => Effect.tryPromise({
+    catch: Errors.RemoveEmployeeError.new(),
+    try: () => prismaClient.employee.update({
       data: {
         deletedAt: new Date(),
       },
       where: {
         id,
       },
-    })
-
-    return Helpers.fromObjectToSchema(EmployeeSchema.Schema)(result)
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeSchema.Schema)),
+    Effect.withSpan("remove.employee.repository"),
+  )
 }
 
 export function hardRemoveById(prismaClient: PrismaClient): EmployeeRepository["hardRemove"] {
-  return async (id) => {
-    const result = await prismaClient.employee.delete({
+  return id => Effect.tryPromise({
+    catch: Errors.RemoveEmployeeError.new(),
+    try: () => prismaClient.employee.delete({
       where: {
         id,
       },
-    })
-    return Helpers.fromObjectToSchema(EmployeeSchema.Schema)(result)
-  }
+    }),
+  }).pipe(
+    Effect.andThen(Helpers.fromObjectToSchema(EmployeeSchema.Schema)),
+    Effect.withSpan("hardRemove.employee.repository"),
+  )
 }
