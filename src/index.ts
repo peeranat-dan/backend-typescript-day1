@@ -6,9 +6,6 @@ import { setupOpenApi } from "./configure/openapi/setup-openapi.js"
 import { setupScalarDocs } from "./configure/openapi/setup-scalar-docs.js"
 import * as EmployeeController from "./controllers/employees/index.js"
 import healthzApp from "./controllers/healthz.js"
-import initEmployeeRepository from "./repositories/employees/index.js"
-import prismaClient from "./repositories/prisma.js"
-import { initEmployeeService } from "./services/employees/index.js"
 
 config()
 const app = new Hono()
@@ -21,9 +18,7 @@ app.get("/", (c) => {
 app.route("/docs", setupScalarDocs())
 app.route("/healthz", healthzApp)
 
-const employeeRepository = initEmployeeRepository(prismaClient)
-const employeeService = initEmployeeService(employeeRepository)
-app.route("/employees", EmployeeController.setupEmployeeRoutes(employeeService))
+app.route("/employees", EmployeeController.setupEmployeeRoutes())
 
 const port = 3000
 console.log(`Server is running on http://localhost:${port}`)
