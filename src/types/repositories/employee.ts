@@ -1,4 +1,8 @@
+import type { Effect } from "effect"
+import type { NoSuchElementException } from "effect/Cause"
+import type { ParseError } from "effect/ParseResult"
 import type { Branded, EmployeeSchema, EmployeeWithRelationsSchema } from "../../schema/index.js"
+import type * as Errors from "../errors/employees.js"
 
 type Employee = EmployeeSchema.Employee
 type EmployeeArray = EmployeeSchema.EmployeeArray
@@ -10,13 +14,13 @@ export type UpdateEmployeeDto = CreateEmployeeDto & {
 }
 
 export type EmployeeRepository = {
-  create: (data: CreateEmployeeDto) => Promise<Employee>
-  findById: (id: Branded.EmployeeId) => Promise<Employee | null>
-  findByIdWithRelations: (id: Branded.EmployeeId) => Promise<EmployeeWithRelationsSchema.EmployeeWithRelations | null>
-  findMany: () => Promise<EmployeeArray>
-  findManyWithRelations: () => Promise<EmployeeWithRelationsSchema.EmployeeWithRelationsArray>
-  update: (id: Branded.EmployeeId, data: UpdateEmployeeDto) => Promise<Employee | null>
-  updatePartial: (id: Branded.EmployeeId, data: Partial<UpdateEmployeeDto>) => Promise<Employee | null>
-  remove: (id: Branded.EmployeeId) => Promise<Employee | null>
-  hardRemove: (id: Branded.EmployeeId) => Promise<Employee | null>
+  create: (data: EmployeeSchema.CreateEmployeeEncoded) => Effect.Effect<Employee, Errors.CreateEmployeeError | ParseError>
+  findById: (id: Branded.EmployeeId) => Effect.Effect<Employee, Errors.FindEmployeeByIdError | ParseError | NoSuchElementException>
+  findByIdWithRelations: (id: Branded.EmployeeId) => Effect.Effect<EmployeeWithRelationsSchema.EmployeeWithRelations, Errors.FindEmployeeByIdError | ParseError | NoSuchElementException>
+  findMany: () => Effect.Effect<EmployeeArray, Errors.FindManyEmployeesError>
+  findManyWithRelations: () => Effect.Effect<EmployeeWithRelationsSchema.EmployeeWithRelationsArray, Errors.FindManyEmployeesError>
+  update: (id: Branded.EmployeeId, data: UpdateEmployeeDto) => Effect.Effect<Employee, Errors.UpdateEmployeeError | ParseError>
+  updatePartial: (id: Branded.EmployeeId, data: Partial<UpdateEmployeeDto>) => Effect.Effect<Employee, Errors.UpdateEmployeeError | ParseError>
+  remove: (id: Branded.EmployeeId) => Effect.Effect<Employee, Errors.RemoveEmployeeError>
+  hardRemove: (id: Branded.EmployeeId) => Effect.Effect<Employee, Errors.RemoveEmployeeError>
 }
