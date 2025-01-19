@@ -1,34 +1,62 @@
-import type { EmployeeService } from "../../types/services/employee.js"
+import { Effect } from "effect"
+import * as S from "effect/Schema"
 import { Hono } from "hono"
 import { describeRoute } from "hono-openapi"
-import { validator } from "hono-openapi/effect"
+import { resolver, validator } from "hono-openapi/effect"
+import { ServicesRuntime } from "../../runtimes/index.js"
 import { EmployeeSchema, Helpers } from "../../schema/index.js"
+import { EmployeeServiceContext } from "../../services/employees/index.js"
 
-const CreateEmployeeResponseSchema = EmployeeSchema.Schema
+const CreateEmployeeResponseSchema = EmployeeSchema.Schema.omit("deletedAt")
 
 const createEmployeeDocs = describeRoute({
   responses: {
     201: {
       content: {
         "application/json": {
-          schema: CreateEmployeeResponseSchema,
+          schema: resolver(CreateEmployeeResponseSchema),
         },
       },
-      description: "Create Employee",
+      description: "Created Employee",
+    },
+    500: {
+      content: {
+        "application/json": {
+          schema: resolver(S.Struct({
+            message: S.String,
+          })),
+        },
+      },
+      description: "Created Employee",
     },
   },
   tags: ["Employee"],
+  validateResponse: true,
 })
 
 const validateCreateEmployee = validator("json", EmployeeSchema.CreateSchema)
 
-export function setupEmployeePostRoutes(employeeService: EmployeeService) {
+export function setupEmployeePostRoutes() {
   const app = new Hono()
 
   app.post("/", createEmployeeDocs, validateCreateEmployee, async (c) => {
-    const body = c.req.valid("json")
-    const newEmployee = await employeeService.create(body)
-    return c.json(Helpers.fromObjectToSchema(CreateEmployeeResponseSchema)(newEmployee), 201)
+    const parseResponse = Helpers.fromObjectToSchemaEffect(CreateEmployeeResponseSchema)
+
+    const program = EmployeeServiceContext.pipe(
+      Effect.tap(() => Effect.log("Create employee")),
+      Effect.andThen(service => service.create(c.req.valid("json"))),
+      Effect.andThen(parseResponse),
+      Effect.andThen(data => c.json(data, 201)),
+      Effect.catchTags({
+        CreateEmployeeError: () => Effect.succeed(c.json({ message: "Create employee error" }, 500)),
+        ParseError: () => Effect.succeed(c.json({ message: "Parse error" }, 500)),
+      }),
+
+      Effect.withSpan("POST / .employee.controller"),
+    )
+
+    const result = await ServicesRuntime.runPromise(program)
+    return result
   })
 
   return app
